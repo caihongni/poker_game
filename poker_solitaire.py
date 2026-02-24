@@ -59,7 +59,7 @@ class Player:
         self.cards = []   # 玩家手上的牌
         self.collects=[]  #玩家收回的牌
         self.count=0    #計算收回的牌數
-
+        
     def get_one(self, card):
         """摸牌"""
         self.cards.append(card)
@@ -67,7 +67,14 @@ class Player:
     def draw_one(self):
         """抽牌"""
         return self.cards.pop()
-    
+    def is_shuffle(self,ans):
+        """是否洗牌"""
+        if ans==1:
+            random.shuffle(self.cards)
+        else:
+            pass
+
+
     def collect_cards(self, desk_cards):#玩家手中收回的牌
         """收牌"""
         self.collects=self.collects+desk_cards
@@ -81,24 +88,40 @@ class Player:
 def main():       
     poker = Poker()
     poker.shuffle()
-    players = [Player('小傑'), Player('奇亞')]
+    while True:
+        try:
+            player_num=int(input("請輸入2-4的數字，選擇接龍人數："))
+            if player_num>4 or player_num<2:
+                raise Exception("玩家不能少於2人或多於5人")
+        except ValueError as e:
+            print ("異常提示：請輸入一個有效數字")
+        except Exception as e:
+            print(f'異常提示：{e}')
+        else:
+            break
+            
+    
+    player_name=input("請登錄玩家用戶名：")
+    players = [Player(player_name)]
+    for j in range(1,player_num):
+        players.append(Player(f'虛擬玩家{j}號'))   #分配虛擬玩家，此處也可以鏈接數據庫取得登錄網站的其他用戶玩家
     desk_cards=[Card(Suite.JOKER,0)]
-    # 将牌轮流发到每个玩家手上每人26张牌
-    for _ in range(26):
+    # 将牌轮流发到每个玩家手上
+    for _ in range(52//player_num):
         for player in players:
             player.get_one(poker.deal())
 
    
     while True:        
         for player in players:
-            answer=input("shuffle?yes or no ?please answer with y or n:")
-            
-            if answer=='y':
-                random.shuffle(player.cards)
-                print(f'{player.name}進行了一次洗牌')
-            else:
-                pass
-            time.sleep(1)
+            ans=0
+            if player==players[0]:
+                answer=input("shuffle?yes or no ?please answer with y or n or any key:")
+                if answer=='y':
+                    ans=1
+                else:
+                    pass
+            player.is_shuffle(ans)
             temp=player.draw_one()
 
             print(f'{player.name}抽出一張牌{temp}')
@@ -114,7 +137,7 @@ def main():
                 desk_cards=desk_cards[:n]
                 print(f'碰！{player.name}收回{cards_len}張牌,手中收回的已有的牌數{player.count}張')
             print(f'桌面上的牌：{desk_cards}')
-            
+            time.sleep(1)
         if not player.cards:
             print("玩家手中都沒牌了，開始計數")
             break
